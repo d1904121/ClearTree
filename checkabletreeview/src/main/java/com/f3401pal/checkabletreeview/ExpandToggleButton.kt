@@ -25,6 +25,15 @@ class ExpandToggleButton : AppCompatImageView {
         (drawable as Animatable).start()
     }
 
+    @UiThread
+    fun setIcon(isExpanded: Boolean) {
+        if(isExpanded){
+            setImageResource(R.drawable.ic_remove_black_24dp)
+        }else{
+            setImageResource(R.drawable.ic_expand_collapse_toggle)
+        }
+    }
+
     private fun initCustomAttributes(attributeSet: AttributeSet) {
         setImageResource(R.drawable.ic_expand_collapse_toggle)
     }

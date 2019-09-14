@@ -116,7 +116,7 @@ class TreeAdapter<T : Checkable>(private val indentation: Int) : RecyclerView.Ad
                 removeCount++
                 if(cur.isExpanded) {
                     cur.children.forEach { removeChildrenFrom(it) }
-                    node.isExpanded = false
+                    cur.isExpanded = false
                 }
             }
             node.children.forEach { removeChildrenFrom(it) }
@@ -145,6 +145,7 @@ class TreeAdapter<T : Checkable>(private val indentation: Int) : RecyclerView.Ad
             } else {
                 itemView.expandIndicator.visibility = View.VISIBLE
                 itemView.expandIndicator.setOnClickListener { expandCollapseToggleHandler(node, this) }
+                itemView.expandIndicator.setIcon(node.isExpanded)
             }
 
             Log.d(TAG, "${node.value}: hasChildChecked=${state.hasChildChecked}, allChildrenChecked=${state.allChildrenChecked}")
