@@ -9,18 +9,18 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class TreeNodeTest {
 
-    private lateinit var left: TreeNode<StringNode>
-    private lateinit var right: TreeNode<StringNode>
-    private lateinit var root: TreeNode<StringNode>
+    private lateinit var left: TreeNode<Node>
+    private lateinit var right: TreeNode<Node>
+    private lateinit var root: TreeNode<Node>
 
     @Before
     fun setUp() {
-        root = TreeNode(StringNode("root"))
-        left = TreeNode(StringNode("left"), root).apply {
-            setChildren(listOf(TreeNode(StringNode("level3left"), this),
-                    TreeNode(StringNode("level3right"), this)))
+        root = TreeNode(Node("root"))
+        left = TreeNode(Node("left"), root).apply {
+            setChildren(listOf(TreeNode(Node("level3left"), this),
+                    TreeNode(Node("level3right"), this)))
         }
-        right = TreeNode(StringNode("right"), root)
+        right = TreeNode(Node("right"), root)
 
         root.setChildren(listOf(left, right))
     }

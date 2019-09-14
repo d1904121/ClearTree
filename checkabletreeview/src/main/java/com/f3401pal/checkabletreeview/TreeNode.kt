@@ -3,23 +3,29 @@ package com.f3401pal.checkabletreeview
 
 object TreeNodeFactory {
 
-    fun buildTestTree(): TreeNode<StringNode> {
-        val root = TreeNode(StringNode("root"))
-        val left = TreeNode(StringNode("left"), root).apply {
+    fun buildTestTree(): TreeNode<Node> {
+        val root = TreeNode(Node("root"))
+        val left = TreeNode(Node("left"), root).apply {
             children=mutableListOf(
-                TreeNode(StringNode("level3left"), this),
-                TreeNode(StringNode("level3right"), this))
+                TreeNode(Node("level3left"), this),
+                TreeNode(Node("level3right"), this))
         }
-        val right = TreeNode(StringNode("right"), root)
+        val right = TreeNode(Node("right"), root)
 
         root.children = mutableListOf(left, right)
         return root
     }
 }
 
-data class StringNode(val str: String) : Checkable(false) {
+open class Node(val str: String) : Checkable(false) {
     override fun toString(): String {
         return str
+    }
+}
+
+class TestNode(str: String,var progress:Int):Node(str){
+    override fun toString(): String {
+        return "[$progress%]$str"
     }
 }
 

@@ -7,7 +7,7 @@ interface CheckableTreeView<T : Checkable> {
     val indentation: Int
         get() = DEFAULT_INDENTATION_IN_DP
 
-    fun setRoots(roots: List<TreeNode<T>>)
+    fun setRoots(roots: MutableList<TreeNode<T>>)
 }
 
 data class NodeCheckedStatus(val hasChildChecked: Boolean, val allChildrenChecked: Boolean)

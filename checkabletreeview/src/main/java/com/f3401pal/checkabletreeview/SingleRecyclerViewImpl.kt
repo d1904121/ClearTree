@@ -29,12 +29,30 @@ class SingleRecyclerViewImpl<T : Checkable> : RecyclerView, CheckableTreeView<T>
         setAdapter(adapter)
     }
 
-    @UiThread
-    override fun setRoots(roots: List<TreeNode<T>>) {
-        with(adapter) {
-            nodes.clear()
-            nodes.addAll(roots)
 
+    fun treeToList(roots: TreeNode<T>):MutableList<TreeNode<T>>{
+        var result= mutableListOf<TreeNode<T>>(roots)
+        val iterator =result.listIterator()
+        for(item in iterator){
+            if(item.isExpanded){
+                for(child in item.children){
+                    treeToList(child).forEach {
+                        iterator.add(it)
+                    }
+                }
+            }
+        }
+        return result
+    }
+
+    @UiThread
+    override fun setRoots(roots: MutableList<TreeNode<T>>) {
+        with(adapter) {
+            var nodesList=mutableListOf<TreeNode<T>>()
+            for(root in roots){
+                nodesList.addAll(treeToList(root))
+            }
+            nodes=nodesList
             notifyDataSetChanged()
         }
     }
@@ -43,7 +61,7 @@ class SingleRecyclerViewImpl<T : Checkable> : RecyclerView, CheckableTreeView<T>
 
 class TreeAdapter<T : Checkable>(private val indentation: Int) : RecyclerView.Adapter<TreeAdapter<T>.ViewHolder>() {
 
-    internal val nodes: MutableList<TreeNode<T>> = mutableListOf()
+    internal var nodes: MutableList<TreeNode<T>> = mutableListOf()
 
     private val expandCollapseToggleHandler: (TreeNode<T>, ViewHolder) -> Unit = { node, viewHolder ->
         if(node.isExpanded) {

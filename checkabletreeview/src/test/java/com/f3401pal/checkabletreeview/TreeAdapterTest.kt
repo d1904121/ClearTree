@@ -23,7 +23,7 @@ class TreeAdapterTest {
     private val viewGroup = RecyclerView(context).apply {
         layoutManager = LinearLayoutManager(context)
     }
-    private lateinit var adapter: TreeAdapter<StringNode>
+    private lateinit var adapter: TreeAdapter<Node>
 
     @Before
     fun setUp() {
@@ -59,7 +59,7 @@ class TreeAdapterTest {
     fun `the adapter should bind the ViewHolder to a node`() {
         val nodes = TreeNodeFactory.buildTestTree()
         adapter.nodes.add(nodes)
-        val viewHolder: TreeAdapter<StringNode>.ViewHolder = mockk(relaxUnitFun = true)
+        val viewHolder: TreeAdapter<Node>.ViewHolder = mockk(relaxUnitFun = true)
 
         adapter.onBindViewHolder(viewHolder, 0)
 
@@ -147,12 +147,12 @@ class ViewHolderTest {
     private val viewGroup = RecyclerView(context).apply {
         layoutManager = LinearLayoutManager(context)
     }
-    private val adapter: TreeAdapter<StringNode> = TreeAdapter(10)
+    private val adapter: TreeAdapter<Node> = TreeAdapter(10)
 
-    private lateinit var subject: TreeAdapter<StringNode>.ViewHolder
+    private lateinit var subject: TreeAdapter<Node>.ViewHolder
 
-    private val parentNode = TreeNode(StringNode("root"))
-    private val leafNode = TreeNode(StringNode("leaf"), parentNode).apply {
+    private val parentNode = TreeNode(Node("root"))
+    private val leafNode = TreeNode(Node("leaf"), parentNode).apply {
         parentNode.setChildren(listOf(this))
     }
 
