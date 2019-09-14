@@ -2,7 +2,6 @@ package com.f3401pal.checkabletreeview
 
 import android.content.Context
 import android.util.AttributeSet
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,28 +9,27 @@ import androidx.annotation.UiThread
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.item_checkable_text.view.*
+import kotlinx.android.synthetic.main.item_checkable_text.view.expandIndicator
+import kotlinx.android.synthetic.main.item_checkable_text.view.indentation
+import kotlinx.android.synthetic.main.item_text_only.view.*
 
 private const val TAG = "SingleRecyclerView"
 
 class SingleRecyclerViewImpl<T : Checkable> : RecyclerView, CheckableTreeView<T> {
-
     private val adapter: TreeAdapter<T> by lazy {
         val indentation = indentation.px
         TreeAdapter<T>(indentation)
     }
-
     constructor(context: Context) : super(context)
     constructor(context: Context, attributeSet: AttributeSet) : super(context, attributeSet)
     constructor(context: Context, attributeSet: AttributeSet, style: Int) : super(context, attributeSet, style)
-
     init {
         layoutManager = LinearLayoutManager(context, VERTICAL, false)
         setAdapter(adapter)
     }
 
-
     fun treeToList(roots: TreeNode<T>):MutableList<TreeNode<T>>{
-        var result= mutableListOf<TreeNode<T>>(roots)
+        val result= mutableListOf<TreeNode<T>>(roots)
         val iterator =result.listIterator()
         for(item in iterator){
             if(item.isExpanded){
@@ -44,11 +42,9 @@ class SingleRecyclerViewImpl<T : Checkable> : RecyclerView, CheckableTreeView<T>
         }
         return result
     }
-
-    @UiThread
-    override fun setRoots(roots: MutableList<TreeNode<T>>) {
+    @UiThread override fun setRoots(roots: MutableList<TreeNode<T>>) {
         with(adapter) {
-            var nodesList=mutableListOf<TreeNode<T>>()
+            val nodesList=mutableListOf<TreeNode<T>>()
             for(root in roots){
                 nodesList.addAll(treeToList(root))
             }
@@ -56,13 +52,13 @@ class SingleRecyclerViewImpl<T : Checkable> : RecyclerView, CheckableTreeView<T>
             notifyDataSetChanged()
         }
     }
-
+    fun setItemOnClick(click:(TreeNode<T>,TreeAdapter<T>.ViewHolder)->Unit){
+        adapter.itemOnclick=click
+    }
 }
 
 class TreeAdapter<T : Checkable>(private val indentation: Int) : RecyclerView.Adapter<TreeAdapter<T>.ViewHolder>() {
-
     internal var nodes: MutableList<TreeNode<T>> = mutableListOf()
-
     private val expandCollapseToggleHandler: (TreeNode<T>, ViewHolder) -> Unit = { node, viewHolder ->
         if(node.isExpanded) {
             collapse(viewHolder.adapterPosition)
@@ -71,7 +67,13 @@ class TreeAdapter<T : Checkable>(private val indentation: Int) : RecyclerView.Ad
         }
         viewHolder.itemView.expandIndicator.startToggleAnimation(node.isExpanded)
     }
-
+    var itemOnclick:(TreeNode<T>, ViewHolder)->Unit={_,_->;}
+    set(value) {
+        field={treeNode,viewHolder->
+            value(treeNode,viewHolder)
+            //TODO: add expand or collapse if needed
+        }
+    }
     init {
         setHasStableIds(true)
     }
@@ -79,21 +81,29 @@ class TreeAdapter<T : Checkable>(private val indentation: Int) : RecyclerView.Ad
     override fun getItemId(position: Int): Long {
         return nodes[position].id
     }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_checkable_text, parent, false), indentation)
+    override fun getItemViewType(position: Int): Int {
+        val node=nodes[position]
+        return when(node.value){
+            is TestNode -> NodeTypes.TEST_NODE.ordinal
+            //TODO: add your node type here
+            else -> NodeTypes.NODE.ordinal
+        }
     }
-
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val layout=when(viewType){
+            //TODO: add your item layout here
+            NodeTypes.TEST_NODE.ordinal -> R.layout.item_text_only
+            else -> R.layout.item_checkable_text
+        }
+        return ViewHolder(LayoutInflater.from(parent.context).inflate(layout, parent, false), indentation)
+    }
     override fun getItemCount(): Int {
         return nodes.size
     }
-
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(nodes[position])
     }
-
-    @UiThread
-    private fun expand(position: Int) {
+    @UiThread private fun expand(position: Int) {
         if(position >= 0) {
             // expand
             val node = nodes[position]
@@ -104,9 +114,7 @@ class TreeAdapter<T : Checkable>(private val indentation: Int) : RecyclerView.Ad
             notifyItemRangeInserted(insertPosition, insertedSize)
         }
     }
-
-    @UiThread
-    private fun collapse(position: Int) {
+    @UiThread private fun collapse(position: Int) {
         // collapse
         if(position >= 0) {
             val node = nodes[position]
@@ -124,12 +132,26 @@ class TreeAdapter<T : Checkable>(private val indentation: Int) : RecyclerView.Ad
             notifyItemRangeRemoved(position + 1, removeCount)
         }
     }
-
     inner class ViewHolder(view: View, private val indentation: Int) : RecyclerView.ViewHolder(view) {
-
-        internal fun bind(node: TreeNode<T>) {
+        //TODO: create your bind function
+        private fun bindIndentation(node: TreeNode<T>){
             itemView.indentation.minimumWidth = indentation * node.getLevel()
-
+        }
+        private fun bindExpandIndicator(node: TreeNode<T>){
+            if(node.isLeaf()) {
+                itemView.expandIndicator.visibility = View.GONE
+            } else {
+                itemView.expandIndicator.visibility = View.VISIBLE
+                itemView.expandIndicator.setOnClickListener { expandCollapseToggleHandler(node, this) }
+                itemView.expandIndicator.setIcon(node.isExpanded)
+            }
+        }
+        private fun bindCommon(node: TreeNode<T>){
+            bindIndentation(node)
+            bindExpandIndicator(node)
+        }
+        private fun bindCheckableText(node: TreeNode<T>){
+            bindCommon(node)
             itemView.checkText.text = node.value.toString()
             itemView.checkText.setOnCheckedChangeListener(null)
             val state = node.getCheckedStatus()
@@ -140,15 +162,17 @@ class TreeAdapter<T : Checkable>(private val indentation: Int) : RecyclerView.Ad
                 notifyDataSetChanged()
             }
 
-            if(node.isLeaf()) {
-                itemView.expandIndicator.visibility = View.GONE
-            } else {
-                itemView.expandIndicator.visibility = View.VISIBLE
-                itemView.expandIndicator.setOnClickListener { expandCollapseToggleHandler(node, this) }
-                itemView.expandIndicator.setIcon(node.isExpanded)
+        }
+        private fun bindTextOnly(node:TreeNode<T>){
+            bindCommon(node)
+            itemView.textView.text = node.value.toString()
+        }
+        internal fun bind(node: TreeNode<T>) {
+            when(node.value){
+                //TODO: bind your layout here
+                is TestNode -> bindTextOnly(node)
+                else -> bindCheckableText(node)
             }
-
-            Log.d(TAG, "${node.value}: hasChildChecked=${state.hasChildChecked}, allChildrenChecked=${state.allChildrenChecked}")
         }
 
     }
