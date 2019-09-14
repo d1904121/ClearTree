@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.item_checkable_text.view.*
 import kotlinx.android.synthetic.main.item_checkable_text.view.expandIndicator
 import kotlinx.android.synthetic.main.item_checkable_text.view.indentation
+import kotlinx.android.synthetic.main.item_quick_create_node.view.*
 import kotlinx.android.synthetic.main.item_text_only.view.*
 
 private const val TAG = "SingleRecyclerView"
@@ -18,7 +19,7 @@ private const val TAG = "SingleRecyclerView"
 class SingleRecyclerViewImpl<T : Checkable> : RecyclerView, CheckableTreeView<T> {
     private val adapter: TreeAdapter<T> by lazy {
         val indentation = indentation.px
-        TreeAdapter<T>(indentation)
+        TreeAdapter<T>(indentation,this as SingleRecyclerViewImpl<Checkable>)
     }
     constructor(context: Context) : super(context)
     constructor(context: Context, attributeSet: AttributeSet) : super(context, attributeSet)
@@ -52,12 +53,13 @@ class SingleRecyclerViewImpl<T : Checkable> : RecyclerView, CheckableTreeView<T>
             notifyDataSetChanged()
         }
     }
+
     fun setItemOnClick(click:(TreeNode<T>,TreeAdapter<T>.ViewHolder)->Unit){
         adapter.itemOnclick=click
     }
 }
 
-class TreeAdapter<T : Checkable>(private val indentation: Int) : RecyclerView.Adapter<TreeAdapter<T>.ViewHolder>() {
+class TreeAdapter<T : Checkable>(private val indentation: Int,private val recyclerView:SingleRecyclerViewImpl<Checkable>) : RecyclerView.Adapter<TreeAdapter<T>.ViewHolder>() {
     internal var nodes: MutableList<TreeNode<T>> = mutableListOf()
     private val expandCollapseToggleHandler: (TreeNode<T>, ViewHolder) -> Unit = { node, viewHolder ->
         if(node.isExpanded) {
@@ -85,6 +87,7 @@ class TreeAdapter<T : Checkable>(private val indentation: Int) : RecyclerView.Ad
         val node=nodes[position]
         return when(node.value){
             is TestNode -> NodeTypes.TEST_NODE.ordinal
+            is QuickCreateNode -> NodeTypes.QUICK_CREATE_NODE.ordinal
             //TODO: add your node type here
             else -> NodeTypes.NODE.ordinal
         }
@@ -93,9 +96,10 @@ class TreeAdapter<T : Checkable>(private val indentation: Int) : RecyclerView.Ad
         val layout=when(viewType){
             //TODO: add your item layout here
             NodeTypes.TEST_NODE.ordinal -> R.layout.item_text_only
+            NodeTypes.QUICK_CREATE_NODE.ordinal -> R.layout.item_quick_create_node
             else -> R.layout.item_checkable_text
         }
-        return ViewHolder(LayoutInflater.from(parent.context).inflate(layout, parent, false), indentation)
+        return ViewHolder(LayoutInflater.from(parent.context).inflate(layout, parent, false), indentation,recyclerView)
     }
     override fun getItemCount(): Int {
         return nodes.size
@@ -132,8 +136,9 @@ class TreeAdapter<T : Checkable>(private val indentation: Int) : RecyclerView.Ad
             notifyItemRangeRemoved(position + 1, removeCount)
         }
     }
-    inner class ViewHolder(view: View, private val indentation: Int) : RecyclerView.ViewHolder(view) {
-        //TODO: create your bind function
+    inner class ViewHolder(view: View, private val indentation: Int,recyclerView:SingleRecyclerViewImpl<Checkable>)
+        : RecyclerView.ViewHolder(view) {
+
         private fun bindIndentation(node: TreeNode<T>){
             itemView.indentation.minimumWidth = indentation * node.getLevel()
         }
@@ -167,10 +172,27 @@ class TreeAdapter<T : Checkable>(private val indentation: Int) : RecyclerView.Ad
             bindCommon(node)
             itemView.textView.text = node.value.toString()
         }
+        private fun bindQuickCreateNode(node: TreeNode<T>){
+            bindIndentation(node)
+            itemView.createButton.setOnClickListener {
+                if(node.parent != null) {
+                    val str = itemView.editText.text.toString()
+                    val newNode = TreeNode(Node(str),node.parent as TreeNode<Node>)
+                    (node.parent as TreeNode<Node>).children.add(newNode)
+                    node.parent.children.remove(node as TreeNode<Node>)
+                    node.parent?.children?.add(node as TreeNode<Node>)
+                    itemView.editText.setText("")
+                    //TODO: enter->create and hide keyboard
+                    recyclerView.setRoots(mutableListOf(node.getRoot() as TreeNode<Checkable>))
+                }
+            }
+        }
+        //TODO: create your bind function here
         internal fun bind(node: TreeNode<T>) {
             when(node.value){
                 //TODO: bind your layout here
                 is TestNode -> bindTextOnly(node)
+                is QuickCreateNode -> bindQuickCreateNode(node)
                 else -> bindCheckableText(node)
             }
         }

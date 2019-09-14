@@ -23,15 +23,18 @@ open class Node(val str: String) : Checkable(false) {
     }
 }
 
+//TODO: add your node class here
 class TestNode(str: String,var progress:Int):Node(str){
     override fun toString(): String {
         return "[$progress%]$str"
     }
 }
 
+class QuickCreateNode():Node("")
+
 class TreeNode<T : Checkable>(
         val value: T,
-        private val parent: TreeNode<T>?,
+        val parent: TreeNode<T>?,
         var children: MutableList<TreeNode<T>>,
         override var isExpanded: Boolean =false
 ) : HasId, Expandable {
@@ -89,5 +92,10 @@ class TreeNode<T : Checkable>(
                 result
             }
         }
+    }
+    fun getRoot():TreeNode<T>{
+        var result=this
+        while(result.parent!=null)result= result.parent!!
+        return result
     }
 }
