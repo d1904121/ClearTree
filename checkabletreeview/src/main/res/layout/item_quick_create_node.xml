@@ -15,8 +15,8 @@
             android:layout_height="wrap_content"
             android:inputType="textPersonName"
             android:ems="10"
-            android:id="@+id/editText" android:layout_weight="1" tools:text="@string/create_a_new_node"
-            android:imeOptions="actionDone"/>
+            android:id="@+id/editText" android:layout_weight="1"
+            android:imeOptions="actionDone" android:hint="@string/create_a_new_node"/>
     <Button
             android:text="@string/plus_mark"
             android:layout_width="40dp"
