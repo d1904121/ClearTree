@@ -1,0 +1,96 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.android.extensions'
+
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'org.jetbrains.dokka-android'
+
+ext {
+    bintrayRepo = 'CheckableTreeView'
+    bintrayName = 'com.f3401pal.checkabletreeview'
+
+    publishedGroupId = bintrayName
+    libraryName = 'CheckableTreeView'
+    artifact = 'checkabletreeview'
+    libraryVersion = '1.2'
+
+    libraryDescription = 'Android Checkable and expandable tree list based on single RecyclerView'
+    siteUrl = 'https://github.com/f3401pal/CheckableTreeView'
+    gitUrl = 'https://github.com/f3401pal/CheckableTreeView.git'
+    licenseName = 'The MIT License'
+    licenseUrl = 'https://opensource.org/licenses/mit-license.php'
+    allLicenses = ['The MIT License']
+
+    developerId = 'f3401pal'
+    developerName = 'Andy Wang'
+    developerEmail = 'f3401pal@gmail.com'
+
+    // Maven config
+    mavDevelopers = ["f3401pal":developerName]
+    mavSiteUrl = siteUrl
+    mavGitUrl = mavSiteUrl + '.git'
+    mavProjectName = libraryName
+    mavLibraryLicenses = ['The MIT License':licenseUrl]
+    mavLibraryDescription = libraryDescription
+}
+
+android {
+    compileSdkVersion 28
+
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 28
+        versionCode 3
+        versionName libraryVersion
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            returnDefaultValues = true
+        }
+    }
+
+    useLibrary 'android.test.runner'
+
+    useLibrary 'android.test.base'
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation "androidx.recyclerview:recyclerview:1.0.0"
+    implementation 'androidx.core:core-ktx:1.0.2'
+
+    testImplementation "org.robolectric:robolectric:4.3"
+    testImplementation "io.mockk:mockk:1.9.3"
+    testImplementation 'androidx.test.ext:junit:1.1.1'
+    testImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+}
+
+task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
+    outputFormat = 'javadoc'
+    outputDirectory = "$buildDir/javadoc"
+}
+
+apply from: "../publish.gradle"
+apply from: 'https://raw.githubusercontent.com/sky-uk/gradle-maven-plugin/master/gradle-mavenizer.gradle'
