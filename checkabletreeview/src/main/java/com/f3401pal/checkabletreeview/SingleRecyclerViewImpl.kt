@@ -1,19 +1,14 @@
 package com.f3401pal.checkabletreeview
 
 import android.content.Context
-import android.graphics.drawable.Animatable
-import android.graphics.drawable.Animatable2
-import android.graphics.drawable.AnimatedVectorDrawable
 import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.annotation.UiThread
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import kotlinx.android.synthetic.main.item_checkable_text.view.*
 
 private const val TAG = "SingleRecyclerView"
@@ -85,8 +80,8 @@ class TreeAdapter<T : Checkable>(private val indentation: Int) : RecyclerView.Ad
             // expand
             val node = nodes[position]
             val insertPosition = position + 1
-            val insertedSize = node.getChildren().size
-            nodes.addAll(insertPosition, node.getChildren())
+            val insertedSize = node.children.size
+            nodes.addAll(insertPosition, node.children)
             node.isExpanded = true
             notifyItemRangeInserted(insertPosition, insertedSize)
         }
@@ -102,11 +97,11 @@ class TreeAdapter<T : Checkable>(private val indentation: Int) : RecyclerView.Ad
                 nodes.remove(cur)
                 removeCount++
                 if(cur.isExpanded) {
-                    cur.getChildren().forEach { removeChildrenFrom(it) }
+                    cur.children.forEach { removeChildrenFrom(it) }
                     node.isExpanded = false
                 }
             }
-            node.getChildren().forEach { removeChildrenFrom(it) }
+            node.children.forEach { removeChildrenFrom(it) }
             node.isExpanded = false
             notifyItemRangeRemoved(position + 1, removeCount)
         }
@@ -117,7 +112,7 @@ class TreeAdapter<T : Checkable>(private val indentation: Int) : RecyclerView.Ad
         internal fun bind(node: TreeNode<T>) {
             itemView.indentation.minimumWidth = indentation * node.getLevel()
 
-            itemView.checkText.text = node.getValue().toString()
+            itemView.checkText.text = node.value.toString()
             itemView.checkText.setOnCheckedChangeListener(null)
             val state = node.getCheckedStatus()
             itemView.checkText.isChecked = state.allChildrenChecked
@@ -134,7 +129,7 @@ class TreeAdapter<T : Checkable>(private val indentation: Int) : RecyclerView.Ad
                 itemView.expandIndicator.setOnClickListener { expandCollapseToggleHandler(node, this) }
             }
 
-            Log.d(TAG, "${node.getValue()}: hasChildChecked=${state.hasChildChecked}, allChildrenChecked=${state.allChildrenChecked}")
+            Log.d(TAG, "${node.value}: hasChildChecked=${state.hasChildChecked}, allChildrenChecked=${state.allChildrenChecked}")
         }
 
     }

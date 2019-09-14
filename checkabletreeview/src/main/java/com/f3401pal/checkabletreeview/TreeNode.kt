@@ -6,12 +6,13 @@ object TreeNodeFactory {
     fun buildTestTree(): TreeNode<StringNode> {
         val root = TreeNode(StringNode("root"))
         val left = TreeNode(StringNode("left"), root).apply {
-            setChildren(mutableListOf(TreeNode(StringNode("level3left"), this),
-                    TreeNode(StringNode("level3right"), this)))
+            children=mutableListOf(
+                TreeNode(StringNode("level3left"), this),
+                TreeNode(StringNode("level3right"), this))
         }
         val right = TreeNode(StringNode("right"), root)
 
-        root.setChildren(mutableListOf(left, right))
+        root.children = mutableListOf(left, right)
         return root
     }
 }
@@ -23,52 +24,33 @@ data class StringNode(val str: String) : Checkable(false) {
 }
 
 class TreeNode<T : Checkable>(
-        private val value: T,
+        val value: T,
         private val parent: TreeNode<T>?,
-        private var children: MutableList<TreeNode<T>>,
+        var children: MutableList<TreeNode<T>>,
         override var isExpanded: Boolean =false
 ) : HasId, Expandable {
-
     override val id: Long by lazy {
         IdGenerator.generate()
     }
-
     // constructor for root node
     constructor(value: T) : this(value, null,  mutableListOf<TreeNode<T>>())
-
     // constructor for leaf node
     constructor(value: T, parent: TreeNode<T>) : this(value, parent,  mutableListOf<TreeNode<T>>())
-
     // constructor for parent node
     constructor(value: T, children: MutableList<TreeNode<T>>) : this(value, null, children)
 
     fun isTop(): Boolean {
         return parent == null
     }
-
     fun isLeaf(): Boolean {
         return children.isEmpty()
     }
-
-    fun getValue(): T {
-        return value
-    }
-
     fun getLevel(): Int {
         fun stepUp (node: TreeNode<T>): Int {
             return node.parent?.let { 1 + stepUp(it) } ?: 0
         }
         return stepUp(this)
     }
-
-    fun setChildren(children: MutableList<TreeNode<T>>) {
-        this.children = children
-    }
-
-    fun getChildren(): MutableList<TreeNode<T>> {
-        return children
-    }
-
     fun setChecked(isChecked: Boolean) {
         value.checked = isChecked
         // cascade the action to children
@@ -76,7 +58,6 @@ class TreeNode<T : Checkable>(
             it.setChecked(isChecked)
         }
     }
-
     fun getCheckedStatus(): NodeCheckedStatus {
         if (isLeaf()) return NodeCheckedStatus(value.checked, value.checked)
         var hasChildChecked = false
@@ -88,7 +69,6 @@ class TreeNode<T : Checkable>(
         }
         return NodeCheckedStatus(hasChildChecked, allChildrenChecked)
     }
-
     fun getAggregatedValues(): List<T> {
         return if (isLeaf()) {
             if (value.checked) listOf(value) else emptyList()
