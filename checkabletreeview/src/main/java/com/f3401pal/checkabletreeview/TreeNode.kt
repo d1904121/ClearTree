@@ -6,12 +6,12 @@ object TreeNodeFactory {
     fun buildTestTree(): TreeNode<StringNode> {
         val root = TreeNode(StringNode("root"))
         val left = TreeNode(StringNode("left"), root).apply {
-            setChildren(listOf(TreeNode(StringNode("level3left"), this),
+            setChildren(mutableListOf(TreeNode(StringNode("level3left"), this),
                     TreeNode(StringNode("level3right"), this)))
         }
         val right = TreeNode(StringNode("right"), root)
 
-        root.setChildren(listOf(left, right))
+        root.setChildren(mutableListOf(left, right))
         return root
     }
 }
@@ -25,7 +25,7 @@ data class StringNode(val str: String) : Checkable(false) {
 class TreeNode<T : Checkable>(
         private val value: T,
         private val parent: TreeNode<T>?,
-        private var children: List<TreeNode<T>>,
+        private var children: MutableList<TreeNode<T>>,
         override var isExpanded: Boolean =false
 ) : HasId, Expandable {
 
@@ -34,13 +34,13 @@ class TreeNode<T : Checkable>(
     }
 
     // constructor for root node
-    constructor(value: T) : this(value, null, emptyList())
+    constructor(value: T) : this(value, null,  mutableListOf<TreeNode<T>>())
 
     // constructor for leaf node
-    constructor(value: T, parent: TreeNode<T>) : this(value, parent, emptyList())
+    constructor(value: T, parent: TreeNode<T>) : this(value, parent,  mutableListOf<TreeNode<T>>())
 
     // constructor for parent node
-    constructor(value: T, children: List<TreeNode<T>>) : this(value, null, children)
+    constructor(value: T, children: MutableList<TreeNode<T>>) : this(value, null, children)
 
     fun isTop(): Boolean {
         return parent == null
@@ -61,11 +61,11 @@ class TreeNode<T : Checkable>(
         return stepUp(this)
     }
 
-    fun setChildren(children: List<TreeNode<T>>) {
+    fun setChildren(children: MutableList<TreeNode<T>>) {
         this.children = children
     }
 
-    fun getChildren(): List<TreeNode<T>> {
+    fun getChildren(): MutableList<TreeNode<T>> {
         return children
     }
 
