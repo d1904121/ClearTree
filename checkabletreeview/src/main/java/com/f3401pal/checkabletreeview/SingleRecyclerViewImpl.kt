@@ -55,7 +55,7 @@ class SingleRecyclerViewImpl<T : Checkable> : RecyclerView, CheckableTreeView<T>
     }
 
     fun setItemOnClick(click:(TreeNode<T>,TreeAdapter<T>.ViewHolder)->Unit){
-        adapter.itemOnclick=click
+        adapter.setItemOnClick(click)
     }
 }
 
@@ -69,17 +69,14 @@ class TreeAdapter<T : Checkable>(private val indentation: Int,private val recycl
         }
         viewHolder.itemView.expandIndicator.startToggleAnimation(node.isExpanded)
     }
-    var itemOnclick:(TreeNode<T>, ViewHolder)->Unit={_,_->;}
-    set(value) {
-        field={treeNode,viewHolder->
-            value(treeNode,viewHolder)
-            //TODO: add expand or collapse if needed
-        }
-    }
+    lateinit var itemOnclick:(TreeNode<T>, ViewHolder)->Unit
+
     init {
         setHasStableIds(true)
     }
-
+    fun setItemOnClick(click:(TreeNode<T>,TreeAdapter<T>.ViewHolder)->Unit){
+        itemOnclick=click
+    }
     override fun getItemId(position: Int): Long {
         return nodes[position].id
     }
@@ -171,6 +168,9 @@ class TreeAdapter<T : Checkable>(private val indentation: Int,private val recycl
         private fun bindTextOnly(node:TreeNode<T>){
             bindCommon(node)
             itemView.textView.text = node.value.toString()
+            itemView.setOnClickListener {
+                itemOnclick(node,this)
+            }
         }
         private fun bindQuickCreateNode(node: TreeNode<T>){
             bindIndentation(node)
@@ -187,7 +187,7 @@ class TreeAdapter<T : Checkable>(private val indentation: Int,private val recycl
                 }
             }
         }
-        //TODO: create your bind function here
+        //TODO: create your bind function here, do not forget setOnClickListener
         internal fun bind(node: TreeNode<T>) {
             when(node.value){
                 //TODO: bind your layout here

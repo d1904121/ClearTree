@@ -1,5 +1,7 @@
 package com.f3401pal.checkabletreeview
 
+import com.google.gson.annotations.Expose
+
 
 object TreeNodeFactory {
 
@@ -17,7 +19,7 @@ object TreeNodeFactory {
     }
 }
 
-open class Node(val str: String) : Checkable(false) {
+open class Node(@Expose val str: String) : Checkable(false) {
     override fun toString(): String {
         return str
     }
@@ -33,10 +35,10 @@ class TestNode(str: String,var progress:Int):Node(str){
 class QuickCreateNode():Node("")
 
 class TreeNode<T : Checkable>(
-        val value: T,
-        val parent: TreeNode<T>?,
-        var children: MutableList<TreeNode<T>>,
-        override var isExpanded: Boolean =false
+    @Expose val value: T,
+    val parent: TreeNode<T>?,
+    @Expose var children: MutableList<TreeNode<T>>,
+    @Expose override var isExpanded: Boolean =false
 ) : HasId, Expandable {
     override val id: Long by lazy {
         IdGenerator.generate()

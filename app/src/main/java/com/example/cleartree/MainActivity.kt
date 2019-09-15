@@ -1,8 +1,10 @@
 package com.example.cleartree
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.f3401pal.checkabletreeview.*
+import com.google.gson.GsonBuilder
 
 class MainActivity : AppCompatActivity() {
     private lateinit var treeView: SingleRecyclerViewImpl<Node>
@@ -13,8 +15,8 @@ class MainActivity : AppCompatActivity() {
 
 
         var root= TreeNodeFactory.buildTestTree()
-//        val t=TreeNode(TestNode("test",2),root.children.get(1))
-//        root.children.get(1).children.add(t)
+        val t=TreeNode(TestNode("test",2),root.children.get(1))
+        root.children.get(1).children.add(t)
 //        val clist=TreeNode(QuickCreateNode())
         val croot=TreeNode(QuickCreateNode(),root)
         root.children.add(croot)
@@ -31,11 +33,18 @@ class MainActivity : AppCompatActivity() {
         treeView.setRoots(list)
 
         treeView.setItemOnClick { treeNode, viewHolder ->
-            when(treeNode.value){
+//            Log.d(TAG,"test")
+//            when(treeNode.value) {
+//                is TestNode -> {
+                    val gson = GsonBuilder().excludeFieldsWithoutExposeAnnotation().create()
+                    val intent = Intent(this, TestNodeDetailActivity::class.java).apply {
+                        putExtra(VariableNames.NODE.name, gson.toJson(treeNode))
+                    }
+                    startActivity(intent)
+//                }
                 //TODO: set your item onClick event
-                is TestNode ->null
-                else ->null
-            }
+//                else ->null
+//            }
         }
 
 
